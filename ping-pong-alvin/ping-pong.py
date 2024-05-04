@@ -2,28 +2,20 @@ from random import randint
 from pygame import *
 from time import time as timer
 
-start = timer()
 
 
-end = timer()
 
 win_width  = 700
 win_height = 500
 window = display.set_mode((700,500))
 display.set_caption('Ping Pong')
-background = transform.scale(image.load('pool.jpg'),(win_width,win_height))
+background = transform.scale(image.load('pool.png'),(win_width,win_height))
 font.init()
 font1 = font.SysFont('Arial',80)
 font2 = font.SysFont('Arial',36)
 win = font1.render('YOU WON!',True,(255,215,0))
 lose = font1.render('YOU LOSE!',True,(180,0,0))
-goal = 10
 
-
-FPS = 60
-clock = time.Clock()
-
-lost = 0
 
 class GameSprite(sprite.Sprite):
     def __init__(self,player_image,player_x,player_y,player_speed):
@@ -33,15 +25,6 @@ class GameSprite(sprite.Sprite):
         self.rect = self.image.get_rect()
         self.rect.x = player_x
         self.rect.y = player_y
-
-class Enemy(GameSprite):
-    def update(self):
-        self.rect.y += self.speed
-        global lost
-        if self.rect.y > win_height:
-            self.rect.x = randint(80,win_width- 80)
-            self.rect.y = 0
-            lost = lost + 1
 
 
 
@@ -66,24 +49,58 @@ class Player(GameSprite):
 
 
 
-player = Player('racket.png',5,win_height -100,4)
-enemy = Enemy('ufo.png',randint(0,200),0,randint(1,3))
+player_L = Player('racket',30, 200,10)
+player_R = Player('racket',820,200,10)
+ball = GameSprite('football.png',200,200,50)
+
+clocl = time.Clock()
+FPS = 60
+game = True
+game_over = False
 
 
 
-monsters = sprite.Group()
-for i in range(1,6):
-    monster = Enemy('ufo.png',randint(0,200),0,randint(1,3))
-    monsters.add(monster)
+
+font1 = font.Font(None, 35)
+lose1 = font1.render('PLAYER 1 LOSES',True,(180, 0, 0))
+font2 = font.Font(None, 35)
+lose2 = font2.render('PLAYER 2 LOSES',True,(180,0 ,0))
+
+speed_x = 3
+speed_y = 3
+
+while game:
+    for e in event.get():
+        if e.type == QUIT:
+            game = False
+
+    if game_over !=True:
+        window.fill(back)
+        window.blit(background,(0,0))
+        player_L.update_L()
+        player_R.update_R()
+        ball.rect.x += speed_x
+        ball.rect.y += speed_y
+
+        
+        if sprite.collide_rect(player_L,ball)or sprite.collide_rect(player_R,ball):
+            speed_x *= -1
+            speed_y *= -1
+
+        if ball.rect.y> win_height -50 or ball.rect.y < 0:
+            speed_y *= -1
+        if ball.rect.x < 0:
+            window.blit(lose1, (200,200))
+        if ball.rect.x > 0:
+            game_over = True
+            window.blit(lose2, (200,200))
+
+   
 
 
 
-finish = False   
-run = True
-life = 3
-score  = 0
-rel_time = False
-num_fire = 0
+
+
 while run:
     for e in event.get():
         if e.type == QUIT:
@@ -97,56 +114,21 @@ while run:
 
                     last_time = timer()
                     rel_time = True
-
-
-    if not finish:
-        window.blit(background,(0,0))
-        player.reset()
-        player.update()
-        monsters.update()
-        bullets.update()
-        asteriods.update()
-        asteriods.draw(window)
+          
 
         
-        monsters.draw(window)
-        bullets.draw(window)
 
-        Score = font2.render("Score:"+str(score),1,(255,255,255))
-        window.blit(Score,(10,20))
-
-        text_lose = font2.render("Missed:"+str(lost),1,(255,255,255))
-        window.blit(text_lose,(10,50))
-
-        text_life =font2.render("Life:"+str(life),1,(255,0,0))
-        window.blit(text_life,(10,80))
-
-        collides = sprite.groupcollide(monsters,bullets,True,True)
-        for i in collides:
-            score = score + 1
-            enemy = Enemy('ufo.png',randint(0,200),0,randint(1,3))
-            monsters.add(monster)
-
-        if sprite.spritecollide(player,monsters,False)or sprite.spritecollide(player,asteriods,False):
-            sprite.spritecollide(player,monsters,True)
-            sprite.spritecollide(player,asteriods,True)
-            life = life - 1
+if ball.rect.x > win_width:
+    game_over = True
+    window.blit(lose2,(350,200))
+    game_over = True
 
 
-        if life == 0 or lost>3:
-            finish = True
-            window.blit(lose,(200,200))
 
-        if score >= goal:
-            finish = True
-            window.blit(win,(200,200))
+player_L.reset()
+player_R.reset()
+ball.reset()
 
-        if rel_time == True:
-            now_time = timer()
-
-            if now_time - last_time < 3:
-                reload = font2.render('Wait, reload...',1,(150,0,0))
-                window.blit(reload,(260,460))
-            else:
-                num_fire = 0
-                rel_time = False
+FPS = 60
+clock = time.Clock()
+display.update()
