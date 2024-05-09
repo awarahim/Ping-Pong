@@ -2,14 +2,12 @@ from random import randint
 from pygame import *
 from time import time as timer
 
-
-
-
 win_width  = 700
 win_height = 500
 window = display.set_mode((700,500))
 display.set_caption('Ping Pong')
-background = transform.scale(image.load('pool.png'),(win_width,win_height))
+back = (255,255,255)
+background = transform.scale(image.load('pool.jpg'),(win_width,win_height))
 font.init()
 font1 = font.SysFont('Arial',80)
 font2 = font.SysFont('Arial',36)
@@ -26,6 +24,9 @@ class GameSprite(sprite.Sprite):
         self.rect.x = player_x
         self.rect.y = player_y
 
+    def reset(self):
+        window.blit(self.image, (self.rect.x, self.rect.y))
+
 
 
 
@@ -34,14 +35,14 @@ class Player(GameSprite):
         keys = key.get_pressed()
         if keys[K_w]and self.rect.y > 5:
             self.rect.y -=self.speed
-        if keys[K_s]and self.rect.y > 5:
+        if keys[K_s]and self.rect.y < win_height-5:
             self.rect.y +=self.speed
 
     def update_r(self):
         keys = key.get_pressed()
         if keys[K_UP]and self.rect.y > 5:
             self.rect.y -=self.speed
-        if keys[K_DOWN]and self.rect.y< 5:
+        if keys[K_DOWN]and self.rect.y < win_height-5:
             self.rect.y +=self.speed
 
     def reset(self):
@@ -49,11 +50,11 @@ class Player(GameSprite):
 
 
 
-player_L = Player('racket',30, 200,10)
-player_R = Player('racket',820,200,10)
+player_L = Player('table_tennis_racket.png',30, 200,10)
+player_R = Player('table_tennis_racket.png',win_width-100,200,10)
 ball = GameSprite('football.png',200,200,50)
 
-clocl = time.Clock()
+clock = time.Clock()
 FPS = 60
 game = True
 game_over = False
@@ -77,8 +78,8 @@ while game:
     if game_over !=True:
         window.fill(back)
         window.blit(background,(0,0))
-        player_L.update_L()
-        player_R.update_R()
+        player_L.update_l()
+        player_R.update_r()
         ball.rect.x += speed_x
         ball.rect.y += speed_y
 
@@ -90,45 +91,19 @@ while game:
         if ball.rect.y> win_height -50 or ball.rect.y < 0:
             speed_y *= -1
         if ball.rect.x < 0:
-            window.blit(lose1, (200,200))
-        if ball.rect.x > 0:
             game_over = True
-            window.blit(lose2, (200,200))
-
-   
-
-
-
-
-
-while run:
-    for e in event.get():
-        if e.type == QUIT:
-            run = False
-        elif e.type ==  KEYDOWN:
-            if e.key == K_SPACE:
-                fire_sound.play( )
-                player.fire()
-
-                if num_fire >= 5 and rel_time == False:
-
-                    last_time = timer()
-                    rel_time = True
-          
-
-        
-
-if ball.rect.x > win_width:
-    game_over = True
-    window.blit(lose2,(350,200))
-    game_over = True
+            window.blit(lose1, (200,200))
+        if ball.rect.x > win_width:
+            game_over = True
+            window.blit(lose2, (350,200))
 
 
 
-player_L.reset()
-player_R.reset()
-ball.reset()
 
-FPS = 60
-clock = time.Clock()
-display.update()
+    player_L.reset()
+    player_R.reset()
+    ball.reset()
+
+
+    display.update()
+    clock.tick(FPS)
